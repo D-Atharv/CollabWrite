@@ -1,52 +1,32 @@
-# Ignore Go build and test files
+# Binaries for programs and plugins
 *.exe
-_*.test
-_*.test.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# Ignore Go module files
-go.mod
-go.sum
+# Go workspace file
+go.work
 
-# Ignore Go cache files
-**/*.cache
+# Go modules
+vendor/
 
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
 
-# Ignore Goland IDE files
-.idea
-
-# Ignore Visual Studio Code files
-.vscode
-
-# Ignore logs
-logs
+# Logs
 *.log
 
-# Ignore temp files
-*.tmp
-*.temp
+# Dependency directories
+Godeps/
 
-# Ignore crash reports
-crash.log
-crashdump-*.log
+# Build directories
+bin/
+build/
 
-
-# Ignore OS files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Ignore temp files created by code editors
-*.swp
-*.swo
-
-# Ignore test data
-testdata
-
-# Ignore node_modules
-node_modules/
 .env
