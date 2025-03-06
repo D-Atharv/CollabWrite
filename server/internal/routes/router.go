@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"server/internal/auth"
-	handlers "server/internal/handlers/doc_handlers"
+	"server/internal/handlers/auth_handlers"
+	"server/internal/handlers/doc_handlers"
 	"server/internal/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -11,8 +11,8 @@ import (
 func SetupRoutes(router *gin.Engine) {
 	api := router.Group("/")
 	{
-		api.GET("/auth/google", auth.GoogleLogin)
-		api.GET("/auth/google/callback", auth.GoogleCallback)
+		api.GET("/auth/google", auth_handlers.GoogleLogin)
+		api.GET("/auth/google/callback", auth_handlers.GoogleCallback)
 
 		protected := api.Group("/docs")
 		protected.Use(middleware.AuthMiddleware())

@@ -2,76 +2,63 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"net/http"
-
 	"os"
+	"server/internal/models"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+	"gorm.io/gorm"
 )
 
 var jwtSecret = []byte("JWT_SECRET")
 
 var GoogleOAuthConfig = &oauth2.Config{
-	// TODO: fix env issue
 	ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 	ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
-	RedirectURL: "http://localhost:8080/auth/google/callback",
-	Scopes:      []string{"email", "profile"},
-	Endpoint:    google.Endpoint,
+	RedirectURL:  "http://localhost:8080/auth/google/callback",
+	Scopes:       []string{"email", "profile"},
+	Endpoint:     google.Endpoint,
 }
-
-func GoogleLogin(c *gin.Context) {
-	url := GoogleOAuthConfig.AuthCodeURL("random-state-string", oauth2.AccessTypeOffline)
-	c.Redirect(http.StatusFound, url)
-}
-
-func GoogleCallback(ctx *gin.Context) {
-	code := ctx.Query("code")
-	if code == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": "Missing auth code",
-		})
-		return
-	}
-
-	_, err := GoogleOAuthConfig.Exchange(context.Background(), code)
+func FetchGoogleUser(token *oauth2.Token) (*models.User, error) {
+	client := GoogleOAuthConfig.Client(context.Background(), token)
+	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": "OAuth exchange failed",
-		})
-		return
+		return nil, fmt.Errorf("error fetching user info from Google API: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var userInfo struct {
+		ID    string `json:"id"`
+		Email string `json:"email"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
+		return nil, fmt.Errorf("error decoding user info from Google API: %w", err)
 	}
 
-	jwtToken, _ := GenerateJWT(1)
-	// ctx.JSON(http.StatusOK, gin.H{
-	// 	"token": jwtToken,
-	// })
-
-	//change this later
-	ctx.Header("Content-Type", "text/html")
-	ctx.String(http.StatusOK, `
-        <html>
-        <head><title>Login Successful</title></head>
-        <body>
-            <h1>Successfully authenticated with Google</h1>
-            <p>Your JWT Token:</p>
-            <textarea style="width: 100%%; height: 150px;">`+jwtToken+`</textarea>
-        </body>
-        </html>
-    `)
-
-	fmt.Print("Successfully authenticated with Google")
+	user := &models.User{
+		Provider:   "google",
+		ProviderID: userInfo.ID,
+		Email:      userInfo.Email,
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
+	}
+	return user, nil
 }
 
-func GenerateJWT(userID int) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": userID,
-		"exp":     time.Now().Add(time.Hour * 24).Unix(),
-	})
-	return token.SignedString(jwtSecret)
+func FindOrCreateUser(db *gorm.DB, googleUser *models.User) (*models.User, error) {
+	var user models.User
+	if err := db.Where("provider_id = ?", googleUser.ProviderID).First(&user).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			if err := db.Create(googleUser).Error; err != nil {
+				return nil, fmt.Errorf("error creating user in DB: %w", err)
+			}
+			return googleUser, nil
+		}
+		return nil, fmt.Errorf("error finding user in DB: %w", err)
+	}
+	return &user, nil
 }
+

@@ -20,7 +20,6 @@ func Migrate(db *gorm.DB) {
 		&models.Document{},
 		&models.DocumentHistory{},
 		&models.DocumentAccess{},
-		&models.Token{},
 	)
 	log.Println("Database migrated")
 }
@@ -41,5 +40,5 @@ func InitDB() {
 	}
 	fmt.Println("Connected to PostgreSQL")
 
-	// Migrate(DB)
+	Migrate(DB)
 }

@@ -13,9 +13,8 @@ import (
 
 //TODO: to setup KONG
 func main() {
-	err := godotenv.Load("../.env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	if err := godotenv.Load("../.env"); err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
 	}
 
 	// gin.SetMode(gin.ReleaseMode)

@@ -51,13 +51,3 @@ type DocumentAccess struct {
 	Role       string    `gorm:"not null"` // "editor", "viewer"
 	CreatedAt  time.Time
 }
-
-// API Tokens (For OAuth2 & Refresh Tokens)
-type Token struct {
-	ID        uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	UserID    uuid.UUID `gorm:"not null;index"`
-	User      User      `gorm:"foreignKey:UserID"`
-	Token     string    `gorm:"not null;unique"`
-	ExpiresAt time.Time
-}
-
