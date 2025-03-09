@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package pb_document;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "./";
+
+service DocumentService {
+  rpc CreateDocument (CreateDocumentRequest) returns (CreateDocumentResponse);
+  rpc GetDocument (GetDocumentRequest) returns (GetDocumentResponse);
+  rpc UpdateDocument (UpdateDocumentRequest) returns (UpdateDocumentResponse);
+  rpc DeleteDocument (DeleteDocumentRequest) returns (DeleteDocumentResponse);
+}
+
+//TODO : remove owner_id from all the messages and add owner_email and owner_provider
+//TODO : response should have document id
+message Document {
+    string id = 1;
+    string owner_id = 2;
+    string title = 3;
+    string content = 4;
+    google.protobuf.Timestamp created_at = 5;
+    google.protobuf.Timestamp updated_at = 6;
+    string owner_email = 7;  // ✅ Add Owner Email
+    string owner_provider = 8;  // ✅ Add Owner Provider
+  }
+  
+
+message CreateDocumentRequest {
+  string owner_id = 1;
+  string title = 2;
+  string content = 3;
+}
+
+message CreateDocumentResponse {
+  Document document = 1;
+}
+
+message GetDocumentRequest {
+  string id = 1;
+}
+
+message GetDocumentResponse {
+  Document document = 1;
+}
+
+message UpdateDocumentRequest {
+  string id = 1;
+  string title = 2;
+  string content = 3;
+}
+
+message UpdateDocumentResponse {
+  Document document = 1;
+}
+
+message DeleteDocumentRequest {
+  string id = 1;
+}
+
+message DeleteDocumentResponse {
+  string message = 1;
+}
+
+
+// protoc --proto_path="C:\Program Files\protobuf\include" --proto_path="D:\Projects\WEB\Final\CollabWrite\server\proto" --go_out="D:\Projects\WEB\Final\CollabWrite\server\proto" --go-grpc_out="D:\Projects\WEB\Final\CollabWrite\server\proto" "D:\Projects\WEB\Final\CollabWrite\server\proto\document.proto"

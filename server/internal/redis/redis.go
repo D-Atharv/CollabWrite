@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -13,11 +14,11 @@ var RedisClient *redis.Client
 
 func InitRedis() {
 	RedisClient = redis.NewClient(&redis.Options{
-		Addr:     "redis-16653.crce179.ap-south-1-1.ec2.redns.redis-cloud.com:16653",
-		Username: "default",
-		Password: "QGbByRLjrpPlEylxaEQop2KwOKftKnpD",
-		DB:       0,
-	})
+        Addr:     os.Getenv("REDIS_ADDR"),
+        Username: os.Getenv("REDIS_USERNAME"),
+        Password: os.Getenv("REDIS_PASSWORD"),
+        DB:       0,
+    })
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
